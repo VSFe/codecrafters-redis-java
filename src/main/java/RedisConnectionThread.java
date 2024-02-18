@@ -32,12 +32,14 @@ public class RedisConnectionThread extends Thread {
 			}
 		} catch (IOException e) {
 			log.error("create I/O stream error.", e);
-		}
-
-		try {
-			socket.close();
-		} catch (IOException e) {
-			log.error("close socket error.", e);
+		} finally {
+			try {
+				if (socket != null) {
+					socket.close();
+				}
+			} catch (IOException e) {
+				log.error("close socket error.", e);
+			}
 		}
 	}
 }
