@@ -51,6 +51,8 @@ public class RedisExecutor {
 		return switch (command) {
 			case PING -> ping();
 			case ECHO -> echo(restParams);
+			case GET -> get(restParams);
+			case SET -> set(restParams);
 		};
 	}
 
@@ -67,7 +69,7 @@ public class RedisExecutor {
 	}
 
 	private static List<RedisResultData> ping() {
-		return List.of(new RedisResultData(RedisDataType.SIMPLE_STRINGS, CommonConstant.REDIS_PONG_OUTPUT));
+		return List.of(new RedisResultData(RedisDataType.SIMPLE_STRINGS, CommonConstant.REDIS_OUTPUT_PONG));
 	}
 
 	private static List<RedisResultData> echo(List<String> args) {
@@ -75,10 +77,30 @@ public class RedisExecutor {
 			throw new RedisExecuteException("execute error - echo need exact 1 args");
 		}
 
-		var str = args.getFirst();
-		var sizeData = new RedisResultData(RedisDataType.BULK_STRINGS, String.valueOf(str.length()));
-		var strData = new RedisResultData(RedisDataType.EMPTY_TYPE, str);
+		return RedisResultData.getBulkStringData(args.getFirst());
+	}
 
-		return List.of(sizeData, strData);
+	private static List<RedisResultData> get(List<String> args) {
+		if (args.size() != 1) {
+			throw new RedisExecuteException("execute error - get need exact 1 args");
+		}
+
+		var key = args.getFirst();
+		var findResult = RedisRepository.get(key);
+
+		return RedisResultData.getBulkStringData(findResult);
+	}
+
+	private static List<RedisResultData> set(List<String> args) {
+		if (args.size() != 2) {
+			throw new RedisExecuteException("execute error - set need exact 2 args");
+		}
+
+		var key = args.getFirst();
+		var value = args.getLast();
+
+		RedisRepository.set(key, value);
+
+		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, CommonConstant.REDIS_OUTPUT_OK);
 	}
 }

@@ -9,7 +9,7 @@ public class RedisRepository {
 	}
 
 	public static String get(String key) {
-		return REDIS_MAP.get(key);
+		return REDIS_MAP.getOrDefault(key, null);
 	}
 
 	public static void set(String key, String value) {

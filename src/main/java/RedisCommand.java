@@ -4,7 +4,9 @@ import java.util.stream.Collectors;
 
 public enum RedisCommand {
 	PING,
-	ECHO;
+	ECHO,
+	SET,
+	GET;
 
 	private static final Map<String, RedisCommand> commandMap = Arrays.stream(RedisCommand.values())
 		.collect(Collectors.toMap(redisCommand -> redisCommand.name().toLowerCase(), it -> it));

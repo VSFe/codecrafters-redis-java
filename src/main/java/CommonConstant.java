@@ -4,5 +4,6 @@ public class CommonConstant {
 
 	public static final int REDIS_PORT = 6379;
 
-	public static final String REDIS_PONG_OUTPUT = "PONG";
+	public static final String REDIS_OUTPUT_PONG = "PONG";
+	public static final String REDIS_OUTPUT_OK = "OK";
 }
