@@ -15,4 +15,8 @@ public class RedisRepository {
 	public static void set(String key, String value) {
 		REDIS_MAP.put(key, value);
 	}
+
+	public static void expire(String key) {
+		REDIS_MAP.remove(key);
+	}
 }

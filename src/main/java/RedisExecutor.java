@@ -1,6 +1,7 @@
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,14 +93,33 @@ public class RedisExecutor {
 	}
 
 	private static List<RedisResultData> set(List<String> args) {
-		if (args.size() != 2) {
-			throw new RedisExecuteException("execute error - set need exact 2 args");
+		if (args.size() < 2) {
+			throw new RedisExecuteException("execute error - set need more than 2 args");
 		}
 
 		var key = args.getFirst();
-		var value = args.getLast();
+		var value = args.get(1);
+		var expireTime = new AtomicLong(-1L);
+
+		// TODO: if need more options, extract separate method... maybe?
+		if (args.size() >= 4) {
+			if ("px".equalsIgnoreCase(args.get(2))) {
+				var milliseconds = Long.parseLong(args.get(3));
+				expireTime.set(milliseconds);
+			}
+		}
 
 		RedisRepository.set(key, value);
+		if (expireTime.get() > 0L) {
+			new Thread(() -> {
+				try {
+					Thread.sleep(expireTime.get());
+					RedisRepository.expire(key);
+				} catch (Exception e) {
+					log.error("expire failed.", e);
+				}
+			}).start();
+		}
 
 		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, CommonConstant.REDIS_OUTPUT_OK);
 	}
