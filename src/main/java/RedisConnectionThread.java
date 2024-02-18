@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +23,10 @@ public class RedisConnectionThread extends Thread {
 			var bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 			var bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
 		) {
-			String input;
-			while ((input = bufferedReader.readLine()) != null) {
-				// TODO: will extracted from another method.
-				log.debug("client input: {}", input);
-				if (CommonConstant.REDIS_PING_INPUT.equalsIgnoreCase(input)) {
-					bufferedWriter.write(CommonConstant.REDIS_PONG_OUTPUT);
-					bufferedWriter.flush();
-				}
+			List<String> inputParams;
+			while ((inputParams = parseInput(bufferedReader)) != null) {
+				log.debug("inputParams: {}", inputParams);
+				RedisExecutor.parseAndExecute(bufferedWriter, inputParams);
 			}
 		} catch (IOException e) {
 			log.error("create I/O stream error.", e);
@@ -40,6 +38,36 @@ public class RedisConnectionThread extends Thread {
 			} catch (IOException e) {
 				log.error("close socket error.", e);
 			}
+		}
+	}
+
+	/**
+	 * parse input
+	 * Redis input given in "array of bulk string" format.
+	 * @param reader
+	 * @return
+	 * @throws IOException
+	 */
+	private List<String> parseInput(BufferedReader reader) throws IOException {
+		try {
+			var sizeStr = reader.readLine();
+			var inputList = new ArrayList<String>();
+
+			if (sizeStr == null) {
+				return null;
+			}
+
+			int size = Integer.parseInt(sizeStr.substring(1));
+			for (int i = 0; i < size; i++) {
+				var paramSizeStr = reader.readLine();
+				var param = reader.readLine();
+				inputList.add(param);
+			}
+
+			return inputList;
+		} catch (Exception e) {
+			log.warn("parse input failed.", e);
+			return null;
 		}
 	}
 }
