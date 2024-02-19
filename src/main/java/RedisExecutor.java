@@ -14,7 +14,7 @@ public class RedisExecutor {
 	public static void parseAndExecute(BufferedWriter writer, List<String> inputParams) {
 		try {
 			if (!checkSupported(inputParams.getFirst())) {
-				returnCommonErrorMessage(writer);
+				returnCommonErrorMessage(writer, null);
 				return;
 			}
 
@@ -26,15 +26,19 @@ public class RedisExecutor {
 			writer.flush();
 		} catch (RuntimeException e) {
 			log.warn("command execute error - inputParams: {}", inputParams, e);
-			returnCommonErrorMessage(writer);
+			returnCommonErrorMessage(writer, null);
 		} catch (IOException e) {
 			log.error("IOException", e);
 		}
 	}
 
-	public static void returnCommonErrorMessage(BufferedWriter writer) {
+	public static void returnCommonErrorMessage(BufferedWriter writer, String detailErrorMessage) {
 		try {
-			writer.write("-ERR\r\n");
+			if (detailErrorMessage != null) {
+				writer.write("-ERR " + detailErrorMessage + "\r\n");
+			} else {
+				writer.write("-ERR\r\n");
+			}
 			writer.flush();
 		} catch (IOException e) {
 			log.error("IOException", e);
@@ -54,6 +58,7 @@ public class RedisExecutor {
 			case ECHO -> echo(restParams);
 			case GET -> get(restParams);
 			case SET -> set(restParams);
+			case CONFIG -> config(restParams);
 		};
 	}
 
@@ -122,5 +127,19 @@ public class RedisExecutor {
 		}
 
 		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, CommonConstant.REDIS_OUTPUT_OK);
+	}
+
+	private static List<RedisResultData> config(List<String> args) {
+		if (args.size() != 2) {
+			throw new RedisExecuteException("execute error - config need exact 2 params");
+		}
+
+		if (CommonConstant.REDIS_COMMAND_PARAM_GET.equalsIgnoreCase(args.getFirst())) {
+			var key = args.get(1);
+			var value = RedisRepository.configGet(key);
+			return RedisResultData.getArrayData(key, value);
+		} else {
+			throw new RedisExecuteException("execute error - not supported option");
+		}
 	}
 }

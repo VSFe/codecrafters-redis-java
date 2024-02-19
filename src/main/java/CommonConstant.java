@@ -6,4 +6,5 @@ public class CommonConstant {
 
 	public static final String REDIS_OUTPUT_PONG = "PONG";
 	public static final String REDIS_OUTPUT_OK = "OK";
+	public static final String REDIS_COMMAND_PARAM_GET = "GET";
 }

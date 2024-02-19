@@ -6,7 +6,8 @@ public enum RedisCommand {
 	PING,
 	ECHO,
 	SET,
-	GET;
+	GET,
+	CONFIG;
 
 	private static final Map<String, RedisCommand> commandMap = Arrays.stream(RedisCommand.values())
 		.collect(Collectors.toMap(redisCommand -> redisCommand.name().toLowerCase(), it -> it));

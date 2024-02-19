@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public record RedisResultData(
@@ -13,5 +14,17 @@ public record RedisResultData(
 		var strData = new RedisResultData(RedisDataType.EMPTY_TYPE, data);
 
 		return data == null ? List.of(sizeData) : List.of(sizeData, strData);
+	}
+
+	public static List<RedisResultData> getArrayData(String... args) {
+		var result = new ArrayList<RedisResultData>();
+
+		// array size data
+		result.add(new RedisResultData(RedisDataType.ARRAYS, String.valueOf(args.length)));
+		for (var str : args) {
+			result.addAll(getBulkStringData(str));
+		}
+
+		return result;
 	}
 }

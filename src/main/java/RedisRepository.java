@@ -3,6 +3,7 @@ import java.util.Map;
 
 public class RedisRepository {
 	private static final Map<String, String> REDIS_MAP = new HashMap<>();
+	private static final Map<String, String> REDIS_CONFIG_MAP = new HashMap<>();
 
 	private RedisRepository() {
 
@@ -12,8 +13,16 @@ public class RedisRepository {
 		return REDIS_MAP.getOrDefault(key, null);
 	}
 
+	public static String configGet(String key) {
+		return REDIS_CONFIG_MAP.getOrDefault(key, null);
+	}
+
 	public static void set(String key, String value) {
 		REDIS_MAP.put(key, value);
+	}
+
+	public static void configSet(String key, String value) {
+		REDIS_CONFIG_MAP.put(key, value);
 	}
 
 	public static void expire(String key) {
