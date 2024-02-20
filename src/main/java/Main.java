@@ -29,13 +29,17 @@ public class Main {
 		var dbFileName = RedisRepository.configGet("dbfilename");
 
 		if (dir != null && dbFileName != null) {
-			var data = RdbUtil.openRdbFile(dir, dbFileName);
-			var builder = new RdbBuilder().bytes(data);
-			var rdb = builder.build();
+			try {
+				var data = RdbUtil.openRdbFile(dir, dbFileName);
+				var builder = new RdbBuilder().bytes(data);
+				var rdb = builder.build();
 
-			log.info("rdb: {}", rdb);
-			if (rdb != null) {
-				rdb.init();
+				log.info("rdb: {}", rdb);
+				if (rdb != null) {
+					rdb.init();
+				}
+			} catch (Exception e) {
+				log.info("RDB Read Failed. init without RDB file.");
 			}
 		}
 	}
