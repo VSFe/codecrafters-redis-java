@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class RedisRepository {
 	private static final Map<String, String> REDIS_MAP = new HashMap<>();
 	private static final Map<String, String> REDIS_CONFIG_MAP = new HashMap<>();
@@ -30,6 +33,17 @@ public class RedisRepository {
 
 	public static void configSet(String key, String value) {
 		REDIS_CONFIG_MAP.put(key, value);
+	}
+
+	public static void expireWithExpireTime(String key, long expireTime) {
+		new Thread(() -> {
+			try {
+				Thread.sleep(expireTime));
+				RedisRepository.expire(key);
+			} catch (Exception e) {
+				log.error("expire failed.", e);
+			}
+		}).start();
 	}
 
 	public static void expire(String key) {

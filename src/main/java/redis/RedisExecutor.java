@@ -118,15 +118,9 @@ public class RedisExecutor {
 		}
 
 		RedisRepository.set(key, value);
+
 		if (expireTime.get() > 0L) {
-			new Thread(() -> {
-				try {
-					Thread.sleep(expireTime.get());
-					RedisRepository.expire(key);
-				} catch (Exception e) {
-					log.error("expire failed.", e);
-				}
-			}).start();
+			RedisRepository.expireWithExpireTime(key, expireTime.get());
 		}
 
 		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, CommonConstant.REDIS_OUTPUT_OK);
