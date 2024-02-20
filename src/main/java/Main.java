@@ -22,7 +22,7 @@ public class Main {
 		}
 	}
 
-	public static void init(String[] args) throws IOException {
+	public static void init(String[] args) {
 		parseConfig(args);
 
 		var dir = RedisRepository.configGet("dir");
