@@ -38,7 +38,7 @@ public class RedisRepository {
 	public static void expireWithExpireTime(String key, long expireTime) {
 		new Thread(() -> {
 			try {
-				Thread.sleep(expireTime));
+				Thread.sleep(expireTime);
 				RedisRepository.expire(key);
 			} catch (Exception e) {
 				log.error("expire failed.", e);
