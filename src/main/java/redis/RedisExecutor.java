@@ -1,3 +1,5 @@
+package redis;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
@@ -59,6 +61,7 @@ public class RedisExecutor {
 			case GET -> get(restParams);
 			case SET -> set(restParams);
 			case CONFIG -> config(restParams);
+			case KEYS -> keys();
 		};
 	}
 
@@ -141,5 +144,10 @@ public class RedisExecutor {
 		} else {
 			throw new RedisExecuteException("execute error - not supported option");
 		}
+	}
+
+	private static List<RedisResultData> keys() {
+		var keys = RedisRepository.getKeys();
+		return RedisResultData.getArrayData(keys.toArray(new String[0]));
 	}
 }

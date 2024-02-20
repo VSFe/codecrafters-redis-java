@@ -1,3 +1,5 @@
+package redis;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -7,7 +9,8 @@ public enum RedisCommand {
 	ECHO,
 	SET,
 	GET,
-	CONFIG;
+	CONFIG,
+	KEYS;
 
 	private static final Map<String, RedisCommand> commandMap = Arrays.stream(RedisCommand.values())
 		.collect(Collectors.toMap(redisCommand -> redisCommand.name().toLowerCase(), it -> it));

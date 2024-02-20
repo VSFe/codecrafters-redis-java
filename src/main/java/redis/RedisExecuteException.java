@@ -1,3 +1,5 @@
+package redis;
+
 public class RedisExecuteException extends RuntimeException {
 	public RedisExecuteException() {
 	}

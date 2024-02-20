@@ -1,4 +1,7 @@
+package redis;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RedisRepository {
@@ -11,6 +14,10 @@ public class RedisRepository {
 
 	public static String get(String key) {
 		return REDIS_MAP.getOrDefault(key, null);
+	}
+
+	public static List<String> getKeys() {
+		return REDIS_MAP.keySet().stream().toList();
 	}
 
 	public static String configGet(String key) {

@@ -1,3 +1,5 @@
+package redis;
+
 public class CommonConstant {
 	private CommonConstant() {
 	}

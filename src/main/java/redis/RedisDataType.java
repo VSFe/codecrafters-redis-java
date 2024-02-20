@@ -1,3 +1,5 @@
+package redis;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
