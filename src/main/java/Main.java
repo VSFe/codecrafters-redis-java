@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.util.ArrayList;
 
+import common.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import rdb.RdbBuilder;
 import rdb.RdbUtil;
@@ -63,7 +64,24 @@ public class Main {
 
 	public static void initReplica() {
 		var replicaOf = RedisRepository.getReplicationConfig(ReplicationConstant.REPLICATION_REPLICA_OF);
-		RedisRepository.setReplicationSetting("role", replicaOf == null ? ReplicationRole.MASTER.name().toLowerCase() : ReplicationRole.SLAVE.name().toLowerCase());
+
+		if (replicaOf == null) {
+			initReplicaForMaster();
+		} else {
+			initReplicaFoSlave();
+		}
+	}
+
+	private static void initReplicaForMaster() {
+		var replid = RandomUtil.createRandomString(40);
+
+		RedisRepository.setReplicationSetting("role", ReplicationRole.MASTER.name().toLowerCase());
+		RedisRepository.setReplicationSetting("master_replid", replid);
+		RedisRepository.setReplicationSetting("master_repl_offset", "0");
+	}
+
+	private static void initReplicaFoSlave() {
+		RedisRepository.setReplicationSetting("role", ReplicationRole.SLAVE.name().toLowerCase());
 	}
 
 	public static void parseConfig(String[] args) {
