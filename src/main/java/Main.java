@@ -39,7 +39,7 @@ public class Main {
 					rdb.init();
 				}
 			} catch (Exception e) {
-				log.info("RDB Read Failed. init without RDB file.");
+				log.info("RDB Read Failed. init without RDB file.", e);
 			}
 		}
 	}

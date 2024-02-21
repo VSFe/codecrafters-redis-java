@@ -52,26 +52,30 @@ public class RdbBuilder {
 			var expireHashTablePair = new ArrayList<RdbExpirePair>();
 			var hashTablePair = new ArrayList<RdbPair>();
 
-			for (int i = 0; i < expireHashTableSize; i++) {
-				if (bytes.get(pos) == REDIS_EXPIRY_TIME_IN_MS_BIT) {
-					// TODO: to be resolved in further problem.
-				} else if (bytes.get(pos) == REDIS_EXPIRY_TIME_IN_SECOND_BIT) {
-					// TODO: to be resolved in further problem.
-				}
-			}
-
 			for (int i = 0; i < hashTableSize; i++) {
-				// Value Type ignored - this challenge use only String type
-				pos++;
-				var keyDataAndNewOffset = extractValueAndNewOffset(pos);
-				var key = keyDataAndNewOffset.data();
-				pos = keyDataAndNewOffset.offset();
+				if (bytes.get(pos) == REDIS_EXPIRY_TIME_IN_MS_BIT || bytes.get(pos) == REDIS_EXPIRY_TIME_IN_SECOND_BIT) {
+					long expireTime = 0L;
+					var count = bytes.get(pos) == REDIS_EXPIRY_TIME_IN_MS_BIT ? 8 : 4;
+					pos++;
 
-				var valueDataAndNewOffset = extractValueAndNewOffset(pos);
-				var value = valueDataAndNewOffset.data();
-				pos = valueDataAndNewOffset.offset();
+					for (var idx = pos + count - 1; idx >= pos; idx--) {
+						expireTime <<= 8;
+						expireTime |= bytes.get(idx);
+					}
 
-				hashTablePair.add(new RdbPair(key, value));
+					if (bytes.get(pos) == REDIS_EXPIRY_TIME_IN_SECOND_BIT) {
+						expireTime *= 1000;
+					}
+
+					var keyValuePairAndOffset = getRdbKeyValuePairAndOffset(pos + count);
+					pos = keyValuePairAndOffset.offset;
+					expireHashTablePair.add(new RdbExpirePair(expireTime, keyValuePairAndOffset.rdbPair.key(), keyValuePairAndOffset.rdbPair.value()));
+				} else {
+					var keyValuePairAndOffset = getRdbKeyValuePairAndOffset(pos);
+
+					hashTablePair.add(keyValuePairAndOffset.rdbPair);
+					pos = keyValuePairAndOffset.offset;
+				}
 			}
 
 			result.add(new RdbDbInfo(dbNumber, hashTableSize, expireHashTableSize, expireHashTablePair, hashTablePair));
@@ -96,6 +100,20 @@ public class RdbBuilder {
 		}
 
 		return result;
+	}
+
+	private RdbKeyValuePairAndOffset getRdbKeyValuePairAndOffset(int pos) {
+		// Value Type ignored - this challenge use only String type
+		pos++;
+		var keyDataAndNewOffset = extractValueAndNewOffset(pos);
+		var key = keyDataAndNewOffset.data();
+		pos = keyDataAndNewOffset.offset();
+
+		var valueDataAndNewOffset = extractValueAndNewOffset(pos);
+		var value = valueDataAndNewOffset.data();
+		pos = valueDataAndNewOffset.offset();
+
+		return new RdbKeyValuePairAndOffset(new RdbPair(key, value), pos);
 	}
 
 	private RdbDataAndOffset extractValueAndNewOffset(int pos) {
@@ -138,5 +156,9 @@ public class RdbBuilder {
 	}
 
 	record RdbEncodingMetadata(RdbEncoding encoding, int value) {
+	}
+
+	record RdbKeyValuePairAndOffset(RdbPair rdbPair, int offset) {
+
 	}
 }

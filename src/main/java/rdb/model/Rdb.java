@@ -11,6 +11,7 @@ public record Rdb(
 	public void init() {
 		for (var dbInfo : rdbDbInfos) {
 			dbInfo.rdbPairs().forEach(rdbPair -> RedisRepository.set(rdbPair.key(), rdbPair.value()));
+			dbInfo.rdbExpirePairs().forEach(rdbExpirePair -> RedisRepository.setWithExpireTimestamp(rdbExpirePair.key(), rdbExpirePair.value(), rdbExpirePair.expireTime()));
 		}
 	}
 }

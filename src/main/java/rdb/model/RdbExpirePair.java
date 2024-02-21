@@ -1,10 +1,7 @@
 package rdb.model;
 
-import redis.RedisDataType;
-
 public record RdbExpirePair(
-	int expireTime,
-	RedisDataType valueType,
+	long expireTime,
 	String key,
 	String value
 ) {
