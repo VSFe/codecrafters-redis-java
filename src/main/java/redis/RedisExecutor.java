@@ -2,9 +2,11 @@ package redis;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import common.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -62,6 +64,7 @@ public class RedisExecutor {
 			case SET -> set(restParams);
 			case CONFIG -> config(restParams);
 			case KEYS -> keys();
+			case INFO -> info(restParams);
 		};
 	}
 
@@ -143,5 +146,22 @@ public class RedisExecutor {
 	private static List<RedisResultData> keys() {
 		var keys = RedisRepository.getKeys();
 		return RedisResultData.getArrayData(keys.toArray(new String[0]));
+	}
+
+	private static List<RedisResultData> info(List<String> restParam) {
+		if (!restParam.getFirst().equalsIgnoreCase("replication")) {
+			return null;
+		}
+
+		var result = new ArrayList<String>();
+		result.add("# Replication");
+
+		result.addAll(RedisRepository.getAllReplicationSettings().stream()
+			.map(entry -> StringUtil.format("{}:{}", entry.getKey(), entry.getValue()))
+			.toList());
+
+		result.set(result.size() - 1, result.getLast() + "\n");
+
+		return RedisResultData.getArrayData(result.toArray(new String[0]));
 	}
 }

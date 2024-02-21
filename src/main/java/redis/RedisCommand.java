@@ -10,7 +10,8 @@ public enum RedisCommand {
 	SET,
 	GET,
 	CONFIG,
-	KEYS;
+	KEYS,
+	INFO;
 
 	private static final Map<String, RedisCommand> commandMap = Arrays.stream(RedisCommand.values())
 		.collect(Collectors.toMap(redisCommand -> redisCommand.name().toLowerCase(), it -> it));

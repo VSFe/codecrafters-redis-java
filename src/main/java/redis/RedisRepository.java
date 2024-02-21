@@ -1,10 +1,7 @@
 package redis;
 
 import java.time.Instant;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +13,7 @@ public class RedisRepository {
 	private static final Map<String, String> REDIS_MAP = new HashMap<>();
 	private static final Map<String, Long> REDIS_TIMESTAMP_MAP = new HashMap<>();
 	private static final Map<String, String> REDIS_CONFIG_MAP = new HashMap<>();
+	private static final Map<String, String> REDIS_REPLICATION_MAP = new HashMap<>();
 
 	private RedisRepository() {
 
@@ -65,5 +63,19 @@ public class RedisRepository {
 
 	public static void expire(String key) {
 		REDIS_MAP.remove(key);
+	}
+
+	public static void setReplicationSetting(String key, String value) {
+		REDIS_REPLICATION_MAP.put(key, value);
+	}
+
+	public static String getReplicationSetting(String key) {
+		return REDIS_REPLICATION_MAP.getOrDefault(key, null);
+	}
+
+	public static List<Map.Entry<String, String>> getAllReplicationSettings() {
+		return REDIS_REPLICATION_MAP.keySet().stream()
+			.map(key -> Map.entry(key, REDIS_REPLICATION_MAP.get(key)))
+			.toList();
 	}
 }

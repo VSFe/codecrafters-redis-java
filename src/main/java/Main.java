@@ -7,11 +7,13 @@ import redis.CommonConstant;
 import redis.RedisConnectionThread;
 import redis.RedisConnectionUtil;
 import redis.RedisRepository;
+import replication.ReplicationRole;
 
 @Slf4j
 public class Main {
 	public static void main(String[] args) throws IOException {
 		var portNumber = init(args);
+		initReplica();
 		log.info("Logs from your program will appear here!");
 
 		var serverSocket = RedisConnectionUtil.createRedisServerSocket(portNumber);
@@ -55,6 +57,11 @@ public class Main {
 		}
 
 		return CommonConstant.DEFAULT_REDIS_PORT;
+	}
+
+	public static void initReplica() {
+		// TODO: set correct setting in further step
+		RedisRepository.setReplicationSetting("role", ReplicationRole.MASTER.name().toLowerCase());
 	}
 
 	public static void parseConfig(String[] args) {
