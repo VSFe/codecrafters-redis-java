@@ -2,11 +2,9 @@ package redis;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import common.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -153,15 +151,15 @@ public class RedisExecutor {
 			return null;
 		}
 
-		var result = new ArrayList<String>();
-		result.add("# Replication");
+		var result = new StringBuilder("# Replication\n");
 
-		result.addAll(RedisRepository.getAllReplicationSettings().stream()
-			.map(entry -> StringUtil.format("{}:{}", entry.getKey(), entry.getValue()))
-			.toList());
+		for (var setting : RedisRepository.getAllReplicationSettings()) {
+			result.append(setting.getKey());
+			result.append(":");
+			result.append(setting.getValue());
+			result.append("\n");
+		}
 
-		result.set(result.size() - 1, result.getLast() + "\n");
-
-		return RedisResultData.getArrayData(result.toArray(new String[0]));
+		return RedisResultData.getBulkStringData(result.toString());
 	}
 }
