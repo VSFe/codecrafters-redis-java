@@ -11,10 +11,10 @@ import redis.RedisRepository;
 @Slf4j
 public class Main {
 	public static void main(String[] args) throws IOException {
-		init(args);
+		var portNumber = init(args);
 		log.info("Logs from your program will appear here!");
 
-		var serverSocket = RedisConnectionUtil.createRedisServerSocket(CommonConstant.REDIS_PORT);
+		var serverSocket = RedisConnectionUtil.createRedisServerSocket(portNumber);
 		while (true) {
 			var clientSocket = serverSocket.accept();
 			var redisClientThread = new RedisConnectionThread(clientSocket);
@@ -22,11 +22,12 @@ public class Main {
 		}
 	}
 
-	public static void init(String[] args) {
+	public static int init(String[] args) {
 		parseConfig(args);
 
 		var dir = RedisRepository.configGet("dir");
 		var dbFileName = RedisRepository.configGet("dbfilename");
+		var port = RedisRepository.configGet("port");
 
 		if (dir != null && dbFileName != null) {
 			try {
@@ -42,6 +43,18 @@ public class Main {
 				log.info("RDB Read Failed. init without RDB file.", e);
 			}
 		}
+
+		if (port != null) {
+			try {
+				var portNumber = Integer.parseInt(port);
+
+				return portNumber;
+			} catch (Exception e) {
+				log.info("Setting Custom Port Number Failed. use default port ({})", CommonConstant.DEFAULT_REDIS_PORT);
+			}
+		}
+
+		return CommonConstant.DEFAULT_REDIS_PORT;
 	}
 
 	public static void parseConfig(String[] args) {
