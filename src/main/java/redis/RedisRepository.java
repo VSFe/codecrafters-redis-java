@@ -13,7 +13,8 @@ public class RedisRepository {
 	private static final Map<String, String> REDIS_MAP = new HashMap<>();
 	private static final Map<String, Long> REDIS_TIMESTAMP_MAP = new HashMap<>();
 	private static final Map<String, String> REDIS_CONFIG_MAP = new HashMap<>();
-	private static final Map<String, String> REDIS_REPLICATION_MAP = new HashMap<>();
+	private static final Map<String, String> REDIS_REPLICATION_INFO_MAP = new HashMap<>();
+	private static final Map<String, List<String>> REDIS_REPLICATION_CONFIG_MAP = new HashMap<>();
 
 	private RedisRepository() {
 
@@ -66,16 +67,24 @@ public class RedisRepository {
 	}
 
 	public static void setReplicationSetting(String key, String value) {
-		REDIS_REPLICATION_MAP.put(key, value);
+		REDIS_REPLICATION_INFO_MAP.put(key, value);
 	}
 
 	public static String getReplicationSetting(String key) {
-		return REDIS_REPLICATION_MAP.getOrDefault(key, null);
+		return REDIS_REPLICATION_INFO_MAP.getOrDefault(key, null);
 	}
 
 	public static List<Map.Entry<String, String>> getAllReplicationSettings() {
-		return REDIS_REPLICATION_MAP.keySet().stream()
-			.map(key -> Map.entry(key, REDIS_REPLICATION_MAP.get(key)))
+		return REDIS_REPLICATION_INFO_MAP.keySet().stream()
+			.map(key -> Map.entry(key, REDIS_REPLICATION_INFO_MAP.get(key)))
 			.toList();
+	}
+
+	public static void setReplicationConfig(String key, List<String> values) {
+		REDIS_REPLICATION_CONFIG_MAP.put(key, values);
+	}
+
+	public static List<String> getReplicationConfig(String key) {
+		return REDIS_REPLICATION_CONFIG_MAP.getOrDefault(key, null);
 	}
 }

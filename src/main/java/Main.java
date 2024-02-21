@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.ArrayList;
 
 import lombok.extern.slf4j.Slf4j;
 import rdb.RdbBuilder;
@@ -7,6 +8,7 @@ import redis.CommonConstant;
 import redis.RedisConnectionThread;
 import redis.RedisConnectionUtil;
 import redis.RedisRepository;
+import replication.ReplicationConstant;
 import replication.ReplicationRole;
 
 @Slf4j
@@ -60,16 +62,27 @@ public class Main {
 	}
 
 	public static void initReplica() {
-		// TODO: set correct setting in further step
-		RedisRepository.setReplicationSetting("role", ReplicationRole.MASTER.name().toLowerCase());
+		var replicaOf = RedisRepository.getReplicationConfig(ReplicationConstant.REPLICATION_REPLICA_OF);
+		RedisRepository.setReplicationSetting("role", replicaOf == null ? ReplicationRole.MASTER.name().toLowerCase() : ReplicationRole.SLAVE.name().toLowerCase());
 	}
 
 	public static void parseConfig(String[] args) {
-		for (int i = 0; i < args.length; i += 2) {
-			var key = args[i].substring(2);
-			var value = args[i + 1];
+		var idx = 0;
 
-			RedisRepository.configSet(key, value);
+		while (idx < args.length) {
+			var keyword = args[idx++];
+
+			if (ReplicationConstant.REPLICATION_CONFIG_LIST.contains(keyword)) {
+				var values = new ArrayList<String>();
+				while (idx < args.length && !args[idx].startsWith("--")) {
+					values.add(args[idx++]);
+				}
+
+				RedisRepository.setReplicationConfig(keyword.substring(2), values);
+			} else if (keyword.startsWith("--")) {
+				var value = args[idx++];
+				RedisRepository.configSet(keyword.substring(2), value);
+			}
 		}
 	}
 }
