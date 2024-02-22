@@ -159,9 +159,8 @@ public class RedisExecutor {
 	}
 
 	private static List<RedisResultData> psync(List<String> restParam) {
-		// TODO: Will be used in further step.
-		var replId = "replId";
-		var offset = "0";
+		var replId = RedisRepository.getReplicationSetting("master_replid");
+		var offset = RedisRepository.getReplicationSetting("master_repl_offset");
 		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "FULLRESYNC %s %s".formatted(replId, offset));
 	}
 }
