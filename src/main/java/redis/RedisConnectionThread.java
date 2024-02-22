@@ -26,9 +26,10 @@ public class RedisConnectionThread extends Thread {
 			var bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
 		) {
 			List<String> inputParams;
+			var redisExecutor = new RedisExecutor(outputStream, bufferedWriter);
 			while ((inputParams = parseInput(bufferedReader)) != null) {
 				log.debug("inputParams: {}", inputParams);
-				RedisExecutor.parseAndExecute(bufferedWriter, inputParams);
+				redisExecutor.parseAndExecute(inputParams);
 			}
 		} catch (IOException e) {
 			log.error("create I/O stream error.", e);

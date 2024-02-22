@@ -13,6 +13,9 @@ import redis.RedisResultData;
 
 @Slf4j
 public class CommandSender {
+	private CommandSender() {
+
+	}
 	public static String sendCommand(BufferedReader reader, BufferedWriter writer, RedisCommand redisCommand, List<String> args) {
 		var inputParams = new ArrayList<String>();
 		inputParams.add(redisCommand.name());
@@ -20,7 +23,7 @@ public class CommandSender {
 
 		try {
 			var sendMessage = RedisResultData.getArrayData(inputParams.toArray(new String[0]));
-			SocketUtil.sendToSocket(writer, RedisResultData.convertToOutputString(sendMessage));
+			SocketUtil.sendStringToSocket(writer, RedisResultData.convertToOutputString(sendMessage));
 
 			var result = reader.readLine();
 

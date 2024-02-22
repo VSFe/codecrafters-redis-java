@@ -2,6 +2,7 @@ package common;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,8 +12,13 @@ public class SocketUtil {
 
 	}
 
-	public static void sendToSocket(BufferedWriter writer, String outputStr) throws IOException {
+	public static void sendStringToSocket(BufferedWriter writer, String outputStr) throws IOException {
 		writer.write(outputStr);
 		writer.flush();
+	}
+
+	public static void sendBytesToSocket(OutputStream outputStream, byte[] bytes) throws IOException {
+		outputStream.write(bytes);
+		outputStream.flush();
 	}
 }
