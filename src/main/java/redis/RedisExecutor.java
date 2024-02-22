@@ -4,9 +4,12 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import common.SocketUtil;
 import lombok.extern.slf4j.Slf4j;
+import rdb.RdbUtil;
 
 @Slf4j
 public class RedisExecutor {
@@ -161,6 +164,16 @@ public class RedisExecutor {
 	private static List<RedisResultData> psync(List<String> restParam) {
 		var replId = RedisRepository.getReplicationSetting("master_replid");
 		var offset = RedisRepository.getReplicationSetting("master_repl_offset");
-		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "FULLRESYNC %s %s".formatted(replId, offset));
+
+		var result = RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "FULLRESYNC %s %s".formatted(replId, offset));
+
+		if (restParam.getFirst().equalsIgnoreCase("?") && restParam.getLast().equalsIgnoreCase("-1")) {
+			var sizeData = new RedisResultData(RedisDataType.BULK_STRINGS, String.valueOf(RdbUtil.EMPTY_RDB.length()));
+			var strData = new RedisResultData(RedisDataType.EMPTY_TYPE_WITHOUT_TRAILING, RdbUtil.EMPTY_RDB);
+
+			result = Stream.concat(result.stream(), Stream.of(sizeData, strData)).toList();
+		}
+
+		return result;
 	}
 }

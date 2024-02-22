@@ -2,6 +2,7 @@ package replication;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
@@ -49,5 +50,22 @@ public class SlaveConnectionProvider {
 		var replicationOffset = Objects.requireNonNullElse(RedisRepository.getReplicationSetting("master_repl_offset"), "-1");
 
 		CommandSender.sendCommand(reader, writer, RedisCommand.PSYNC, List.of(replicationId, replicationOffset));
+		receiveRdb();
+	}
+
+	private void receiveRdb() {
+		try {
+			var lengthOfFile = reader.readLine();
+			var length = Integer.valueOf(lengthOfFile.substring(1));
+			var rdbInput = new StringBuilder();
+
+			for (int i = 0; i < length; i++) {
+				rdbInput.append((char)(reader.read()));
+			}
+
+			log.info("rdb file received. length:{}, input:{}", lengthOfFile, rdbInput);
+		} catch (IOException e) {
+			log.error("IOException", e);
+		}
 	}
 }

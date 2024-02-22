@@ -36,7 +36,9 @@ public record RedisResultData(
 		for (var redisResultData : resultDataList) {
 			result.append(redisResultData.redisDataType().getFirstByte());
 			result.append(redisResultData.data());
-			result.append("\r\n");
+			if (redisResultData.redisDataType.isTrailing()) {
+				result.append("\r\n");
+			}
 		}
 
 		return result.toString();

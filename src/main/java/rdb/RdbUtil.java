@@ -13,6 +13,7 @@ public class RdbUtil {
 
 	}
 
+	public static final String EMPTY_RDB = "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog==";
 	private static final String REDIS_MAGIC_STR = "REDIS";
 
 	public static List<Integer> openRdbFile(String dir, String fileName) throws IOException {
