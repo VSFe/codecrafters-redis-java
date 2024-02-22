@@ -11,6 +11,7 @@ import redis.RedisConnectionUtil;
 import redis.RedisRepository;
 import replication.ReplicationConstant;
 import replication.ReplicationRole;
+import replication.SlaveConnectionProvider;
 
 @Slf4j
 public class Main {
@@ -82,6 +83,11 @@ public class Main {
 
 	private static void initReplicaFoSlave() {
 		RedisRepository.setReplicationSetting("role", ReplicationRole.SLAVE.name().toLowerCase());
+
+		var replicaOf = RedisRepository.getReplicationConfig(ReplicationConstant.REPLICATION_REPLICA_OF);
+		var slaveConnectionProvider = new SlaveConnectionProvider();
+
+		slaveConnectionProvider.init(replicaOf.getFirst(), Integer.parseInt(replicaOf.getLast()));
 	}
 
 	public static void parseConfig(String[] args) {

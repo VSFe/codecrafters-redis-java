@@ -29,4 +29,16 @@ public record RedisResultData(
 
 		return result;
 	}
+
+	public static String convertToOutputString(List<RedisResultData> resultDataList) {
+		var result = new StringBuilder();
+
+		for (var redisResultData : resultDataList) {
+			result.append(redisResultData.redisDataType().getFirstByte());
+			result.append(redisResultData.data());
+			result.append("\r\n");
+		}
+
+		return result.toString();
+	}
 }

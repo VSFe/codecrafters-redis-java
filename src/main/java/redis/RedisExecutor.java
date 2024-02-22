@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import common.SocketUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -21,11 +22,10 @@ public class RedisExecutor {
 			}
 
 			var data = executeCommand(inputParams);
-			var outputStr = convertToOutputString(data);
-
+			var outputStr = RedisResultData.convertToOutputString(data);
 			log.debug("output: {}", outputStr);
-			writer.write(outputStr);
-			writer.flush();
+
+			SocketUtil.sendToSocket(writer, outputStr);
 		} catch (RuntimeException e) {
 			log.warn("command execute error - inputParams: {}", inputParams, e);
 			returnCommonErrorMessage(writer, null);
@@ -64,18 +64,6 @@ public class RedisExecutor {
 			case KEYS -> keys();
 			case INFO -> info(restParams);
 		};
-	}
-
-	private static String convertToOutputString(List<RedisResultData> redisResultDataList) {
-		var result = new StringBuilder();
-
-		for (var redisResultData : redisResultDataList) {
-			result.append(redisResultData.redisDataType().getFirstByte());
-			result.append(redisResultData.data());
-			result.append("\r\n");
-		}
-
-		return result.toString();
 	}
 
 	private static List<RedisResultData> ping() {
