@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import common.SocketUtil;
@@ -168,8 +167,8 @@ public class RedisExecutor {
 		var result = RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "FULLRESYNC %s %s".formatted(replId, offset));
 
 		if (restParam.getFirst().equalsIgnoreCase("?") && restParam.getLast().equalsIgnoreCase("-1")) {
-			var sizeData = new RedisResultData(RedisDataType.BULK_STRINGS, String.valueOf(RdbUtil.EMPTY_RDB.length()));
-			var strData = new RedisResultData(RedisDataType.EMPTY_TYPE_WITHOUT_TRAILING, RdbUtil.EMPTY_RDB);
+			var sizeData = new RedisResultData(RedisDataType.BULK_STRINGS, String.valueOf(RdbUtil.EMPTY_RDB_HEX.length()));
+			var strData = new RedisResultData(RedisDataType.EMPTY_TYPE_WITHOUT_TRAILING, RdbUtil.EMPTY_RDB_HEX);
 
 			result = Stream.concat(result.stream(), Stream.of(sizeData, strData)).toList();
 		}
