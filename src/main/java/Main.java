@@ -58,6 +58,8 @@ public class Main {
 			} catch (Exception e) {
 				log.info("Setting Custom Port Number Failed. use default port ({})", CommonConstant.DEFAULT_REDIS_PORT);
 			}
+		} else {
+			RedisRepository.configSet("port", String.valueOf(CommonConstant.DEFAULT_REDIS_PORT));
 		}
 
 		return CommonConstant.DEFAULT_REDIS_PORT;
