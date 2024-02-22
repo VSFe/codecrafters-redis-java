@@ -15,7 +15,8 @@ public enum RedisCommand {
 	// Replication Command
 	INFO,
 	PING,
-	REPLCONF;
+	REPLCONF,
+	PSYNC;
 
 	private static final Map<String, RedisCommand> commandMap = Arrays.stream(RedisCommand.values())
 		.collect(Collectors.toMap(redisCommand -> redisCommand.name().toLowerCase(), it -> it));

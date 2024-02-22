@@ -64,6 +64,7 @@ public class RedisExecutor {
 			case KEYS -> keys();
 			case INFO -> info(restParams);
 			case REPLCONF -> replconf(restParams);
+			case PSYNC -> psync(restParams);
 		};
 	}
 
@@ -155,5 +156,12 @@ public class RedisExecutor {
 	private static List<RedisResultData> replconf(List<String> restParam) {
 		// TODO: Will be used in further step.
 		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "OK");
+	}
+
+	private static List<RedisResultData> psync(List<String> restParam) {
+		// TODO: Will be used in further step.
+		var replId = "replId";
+		var offset = "0";
+		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "FULLRESYNC %s %s".formatted(replId, offset));
 	}
 }

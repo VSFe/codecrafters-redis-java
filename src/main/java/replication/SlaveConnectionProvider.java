@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.List;
+import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 import redis.RedisCommand;
@@ -31,6 +32,7 @@ public class SlaveConnectionProvider {
 	public void handShake() {
 		ping();
 		replconf();
+		psync();
 	}
 
 	private void ping() {
@@ -40,5 +42,12 @@ public class SlaveConnectionProvider {
 	private void replconf() {
 		CommandSender.sendCommand(reader, writer, RedisCommand.REPLCONF, List.of("listening-port", RedisRepository.configGet("port")));
 		CommandSender.sendCommand(reader, writer, RedisCommand.REPLCONF, List.of("capa", "psync2"));
+	}
+
+	private void psync() {
+		var replicationId = Objects.requireNonNullElse(RedisRepository.getReplicationSetting("master_replid"), "?");
+		var replicationOffset = Objects.requireNonNullElse(RedisRepository.getReplicationSetting("master_repl_offset"), "-1");
+
+		CommandSender.sendCommand(reader, writer, RedisCommand.PSYNC, List.of(replicationId, replicationOffset));
 	}
 }
