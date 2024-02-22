@@ -63,6 +63,7 @@ public class RedisExecutor {
 			case CONFIG -> config(restParams);
 			case KEYS -> keys();
 			case INFO -> info(restParams);
+			case REPLCONF -> replconf(restParams);
 		};
 	}
 
@@ -149,5 +150,10 @@ public class RedisExecutor {
 		}
 
 		return RedisResultData.getBulkStringData(result.toString());
+	}
+
+	private static List<RedisResultData> replconf(List<String> restParam) {
+		// TODO: Will be used in further step.
+		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "OK");
 	}
 }
