@@ -172,6 +172,14 @@ public class RedisExecutor {
 	}
 
 	private List<RedisResultData> replconf(List<String> restParam) {
+		if ("GETACK".equalsIgnoreCase(restParam.getFirst()) && "*".equalsIgnoreCase(restParam.get(1))) {
+			try {
+				var message = RedisResultData.getArrayData("REPLCONF", "ACK", "0");
+				SocketUtil.sendStringToSocket(writer, RedisResultData.convertToOutputString(message));
+			} catch (IOException e) {
+				log.error("IOException", e);
+			}
+		}
 		if ("listening-port".equalsIgnoreCase(restParam.getFirst())) {
 			var host = socket.getInetAddress().getHostAddress();
 			var connectionPort = socket.getPort();
@@ -196,15 +204,15 @@ public class RedisExecutor {
 		try {
 			SocketUtil.sendStringToSocket(writer, RedisResultData.convertToOutputString(result));
 			SocketUtil.sendBytesToSocket(outputStream, message);
-		} catch (IOException e) {
+
+			var ipAddress = socket.getInetAddress().getHostAddress();
+			var innerPort = socket.getPort();
+
+			log.info("ipAddress: {}, innerPort: {}", ipAddress, innerPort);
+			MasterConnectionHolder.addConnectedList(writer);
+		} catch (Exception e) {
 			log.error("IOException", e);
 		}
-
-		var ipAddress = socket.getInetAddress().getHostAddress();
-		var innerPort = socket.getPort();
-
-		log.info("ipAddress: {}, innerPort: {}", ipAddress, innerPort);
-		MasterConnectionHolder.addConnectedList(writer);
 
 		return result;
 	}

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import redis.RedisCommand;
 import redis.RedisExecutor;
 import redis.RedisRepository;
+import redis.RedisResultData;
 
 @Slf4j
 public class SlaveConnectionProvider {
@@ -76,12 +77,14 @@ public class SlaveConnectionProvider {
 	}
 
 	private void receiveMessage() throws IOException {
-		var newReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		new Thread(() -> {
-			var redisExecutor = new RedisExecutor(clientSocket, outputStream, null);
+			var redisExecutor = new RedisExecutor(clientSocket, outputStream, writer);
 			List<String> inputParams;
 
-			while ((inputParams = SocketUtil.parseSocketInputToRedisCommand(newReader)) != null) {
+			while ((inputParams = SocketUtil.parseSocketInputToRedisCommand(reader)) != null) {
+				if (inputParams.isEmpty()) {
+					continue;
+				}
 				log.debug("inputParams: {}", inputParams);
 				redisExecutor.parseAndExecute(inputParams);
 			}

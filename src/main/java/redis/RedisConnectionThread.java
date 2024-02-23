@@ -29,6 +29,9 @@ public class RedisConnectionThread extends Thread {
 			List<String> inputParams;
 			var redisExecutor = new RedisExecutor(socket, outputStream, bufferedWriter);
 			while ((inputParams = SocketUtil.parseSocketInputToRedisCommand(bufferedReader)) != null) {
+				if (inputParams.isEmpty()) {
+					continue;
+				}
 				log.debug("inputParams: {}", inputParams);
 				redisExecutor.parseAndExecute(inputParams);
 			}
