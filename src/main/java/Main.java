@@ -17,10 +17,11 @@ import replication.SlaveConnectionProvider;
 public class Main {
 	public static void main(String[] args) throws IOException {
 		var portNumber = init(args);
+		var serverSocket = RedisConnectionUtil.createRedisServerSocket(portNumber);
+
 		initReplica();
 		log.info("Logs from your program will appear here!");
 
-		var serverSocket = RedisConnectionUtil.createRedisServerSocket(portNumber);
 		while (true) {
 			var clientSocket = serverSocket.accept();
 			var redisClientThread = new RedisConnectionThread(clientSocket);

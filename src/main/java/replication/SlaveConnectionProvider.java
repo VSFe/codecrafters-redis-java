@@ -4,27 +4,33 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.List;
 import java.util.Objects;
 
+import common.SocketUtil;
 import lombok.extern.slf4j.Slf4j;
 import redis.RedisCommand;
+import redis.RedisExecutor;
 import redis.RedisRepository;
 
 @Slf4j
 public class SlaveConnectionProvider {
 	private Socket clientSocket;
+	private OutputStream outputStream;
 	private BufferedReader reader;
 	private BufferedWriter writer;
 
 	public void init(String masterHost, int masterPort) {
 		try {
 			this.clientSocket = new Socket(masterHost, masterPort);
+			this.outputStream = clientSocket.getOutputStream();
 			this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			this.writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 			handShake();
+			receiveMessage();
 		} catch (Exception e) {
 
 		}
@@ -59,7 +65,7 @@ public class SlaveConnectionProvider {
 			var length = Integer.valueOf(lengthOfFile.substring(1));
 			var rdbInput = new StringBuilder();
 
-			for (int i = 0; i < length; i++) {
+			for (int i = 1; i < length; i++) {
 				rdbInput.append((char)(reader.read()));
 			}
 
@@ -67,5 +73,18 @@ public class SlaveConnectionProvider {
 		} catch (IOException e) {
 			log.error("IOException", e);
 		}
+	}
+
+	private void receiveMessage() throws IOException {
+		var newReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+		new Thread(() -> {
+			var redisExecutor = new RedisExecutor(clientSocket, outputStream, null);
+			List<String> inputParams;
+
+			while ((inputParams = SocketUtil.parseSocketInputToRedisCommand(newReader)) != null) {
+				log.debug("inputParams: {}", inputParams);
+				redisExecutor.parseAndExecute(inputParams);
+			}
+		}).start();
 	}
 }

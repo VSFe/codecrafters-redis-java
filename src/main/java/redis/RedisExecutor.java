@@ -3,6 +3,7 @@ package redis;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -12,10 +13,12 @@ import common.SocketUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import rdb.RdbUtil;
+import replication.MasterConnectionHolder;
 
 @Slf4j
 @RequiredArgsConstructor
 public class RedisExecutor {
+	private final Socket socket;
 	private final OutputStream outputStream;
 	private final BufferedWriter writer;
 
@@ -33,6 +36,9 @@ public class RedisExecutor {
 
 			if (command.isSendMessage()) {
 				SocketUtil.sendStringToSocket(writer, outputStr);
+			}
+			if (command.isWrite()) {
+				MasterConnectionHolder.propagateCommand(inputParams);
 			}
 		} catch (RuntimeException e) {
 			log.warn("command execute error - inputParams: {}", inputParams, e);
@@ -64,6 +70,7 @@ public class RedisExecutor {
 			case ECHO -> echo(restParams);
 			case GET -> get(restParams);
 			case SET -> set(restParams);
+			case DEL -> del(restParams);
 			case CONFIG -> config(restParams);
 			case KEYS -> keys();
 			case INFO -> info(restParams);
@@ -121,6 +128,13 @@ public class RedisExecutor {
 		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, CommonConstant.REDIS_OUTPUT_OK);
 	}
 
+	private List<RedisResultData> del(List<String> args) {
+		var key = args.getFirst();
+
+		RedisRepository.del(key);
+		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, CommonConstant.REDIS_OUTPUT_OK);
+	}
+
 	private List<RedisResultData> config(List<String> args) {
 		if (args.size() != 2) {
 			throw new RedisExecuteException("execute error - config need exact 2 params");
@@ -158,7 +172,14 @@ public class RedisExecutor {
 	}
 
 	private List<RedisResultData> replconf(List<String> restParam) {
-		// TODO: Will be used in further step.
+		if ("listening-port".equalsIgnoreCase(restParam.getFirst())) {
+			var host = socket.getInetAddress().getHostAddress();
+			var connectionPort = socket.getPort();
+			var port = Integer.parseInt(restParam.get(1));
+
+			log.info("ipAddress: {}, innerPort: {}, port:{}", host, connectionPort, port);
+			MasterConnectionHolder.createNewWaitingConnection("localhost", connectionPort, port);
+		}
 		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "OK");
 	}
 
@@ -178,6 +199,12 @@ public class RedisExecutor {
 		} catch (IOException e) {
 			log.error("IOException", e);
 		}
+
+		var ipAddress = socket.getInetAddress().getHostAddress();
+		var innerPort = socket.getPort();
+
+		log.info("ipAddress: {}, innerPort: {}", ipAddress, innerPort);
+		MasterConnectionHolder.addConnectedList("localhost", innerPort, writer);
 
 		return result;
 	}

@@ -46,6 +46,10 @@ public class RedisRepository {
 		REDIS_MAP.put(key, value);
 	}
 
+	public static void del(String key) {
+		REDIS_MAP.remove(key);
+	}
+
 	public static void setWithExpireTimestamp(String key, String value, long timeStamp) {
 		REDIS_MAP.put(key, value);
 		REDIS_TIMESTAMP_MAP.put(key, timeStamp);
