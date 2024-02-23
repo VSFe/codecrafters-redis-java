@@ -178,7 +178,7 @@ public class RedisExecutor {
 			var port = Integer.parseInt(restParam.get(1));
 
 			log.info("ipAddress: {}, innerPort: {}, port:{}", host, connectionPort, port);
-			MasterConnectionHolder.createNewWaitingConnection("localhost", connectionPort, port);
+			// TODO: Will be used... maybe?
 		}
 		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "OK");
 	}
@@ -204,7 +204,7 @@ public class RedisExecutor {
 		var innerPort = socket.getPort();
 
 		log.info("ipAddress: {}, innerPort: {}", ipAddress, innerPort);
-		MasterConnectionHolder.addConnectedList("localhost", innerPort, writer);
+		MasterConnectionHolder.addConnectedList(writer);
 
 		return result;
 	}
