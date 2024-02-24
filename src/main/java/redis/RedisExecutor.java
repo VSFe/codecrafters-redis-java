@@ -181,10 +181,15 @@ public class RedisExecutor {
 			try {
 				var offset = RedisRepository.getReplicationSetting("master_repl_offset", "0");
 				var message = RedisResultData.getArrayData("REPLCONF", "ACK", offset);
+
 				SocketUtil.sendStringToSocket(writer, RedisResultData.convertToOutputString(message));
 			} catch (Exception e) {
 				log.error("IOException", e);
 			}
+		} else if ("ACK".equalsIgnoreCase(restParam.getFirst())) {
+			var offset = Integer.parseInt(restParam.getLast());
+			var connectionProvider = MasterConnectionHolder.findProvider(socket);
+			connectionProvider.setPresentAck(offset);
 		}
 		if ("listening-port".equalsIgnoreCase(restParam.getFirst())) {
 			var host = socket.getInetAddress().getHostAddress();
@@ -215,7 +220,7 @@ public class RedisExecutor {
 			var innerPort = socket.getPort();
 
 			log.info("ipAddress: {}, innerPort: {}", ipAddress, innerPort);
-			MasterConnectionHolder.addConnectedList(writer);
+			MasterConnectionHolder.addConnectedList(socket, writer);
 		} catch (Exception e) {
 			log.error("IOException", e);
 		}
@@ -231,6 +236,6 @@ public class RedisExecutor {
 		var needReplica = Integer.parseInt(args.getFirst());
 		var timeLimit = Integer.parseInt(args.getLast());
 
-		return RedisResultData.getSimpleResultData(RedisDataType.INTEGER, "0");
+		return RedisResultData.getSimpleResultData(RedisDataType.INTEGER, String.valueOf(MasterConnectionHolder.getFullySyncedReplicaCount(needReplica, timeLimit)));
 	}
 }

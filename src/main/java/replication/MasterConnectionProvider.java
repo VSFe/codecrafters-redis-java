@@ -1,30 +1,35 @@
 package replication;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.List;
 
 import common.SocketUtil;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import redis.RedisResultData;
 
 @Slf4j
+@Getter
 public class MasterConnectionProvider {
 	private Socket socket;
+	private BufferedReader reader;
 	private BufferedWriter writer;
+	private boolean isAckRequested = false;
+	private int desiredAck = 0;
+	private int presentAck = 0;
+	public static final int REPLCONF_ACK_BYTE_SIZE = 37;
 
-	public MasterConnectionProvider(BufferedWriter writer) {
-		this.writer = writer;
-	}
-
-	public void init(String slaveHost, int port) {
+	public MasterConnectionProvider(Socket socket, BufferedWriter writer) {
 		try {
-			this.socket = new Socket(slaveHost, port);
-			this.writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+			this.socket = socket;
+			this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			this.writer = writer;
 		} catch (IOException e) {
-			log.error("IOException", e);
+
 		}
 	}
 
@@ -34,8 +39,38 @@ public class MasterConnectionProvider {
 			var message = RedisResultData.convertToOutputString(arrayData);
 
 			SocketUtil.sendStringToSocket(writer, message);
+			desiredAck += message.length();
 		} catch (IOException e) {
 			log.error("IOException", e);
 		}
+	}
+
+	public void sendAck() {
+		try {
+			var ackRequest = RedisResultData.getArrayData("REPLCONF", "GETACK", "*");
+			var message = RedisResultData.convertToOutputString(ackRequest);
+
+			SocketUtil.sendStringToSocket(writer, message);
+			desiredAck += message.length();
+			isAckRequested = true;
+		} catch (IOException e) {
+			log.error("IOException", e);
+		}
+	}
+
+	public boolean isAckReceiving() {
+		return isAckRequested;
+	}
+
+	public void setPresentAck(int num) {
+		this.presentAck = num;
+	}
+
+	public void completeAck() {
+		this.isAckRequested = false;
+	}
+
+	public boolean isFullySynced() {
+		return desiredAck - REPLCONF_ACK_BYTE_SIZE == presentAck;
 	}
 }
