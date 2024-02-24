@@ -22,7 +22,8 @@ public enum RedisCommand {
 	INFO(true, false),
 	PING(true, false),
 	REPLCONF(true, false),
-	PSYNC(false, false);
+	PSYNC(false, false),
+	WAIT(true, false);
 
 	private static final Map<String, RedisCommand> commandMap = Arrays.stream(RedisCommand.values())
 		.collect(Collectors.toMap(redisCommand -> redisCommand.name().toLowerCase(), it -> it));

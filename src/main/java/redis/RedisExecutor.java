@@ -80,6 +80,7 @@ public class RedisExecutor {
 			case INFO -> info(restParams);
 			case REPLCONF -> replconf(restParams);
 			case PSYNC -> psync(restParams);
+			case WAIT -> wait(restParams);
 		};
 	}
 
@@ -220,5 +221,16 @@ public class RedisExecutor {
 		}
 
 		return result;
+	}
+
+	private List<RedisResultData> wait(List<String> args) {
+		if (args.size() != 2) {
+			throw new RedisExecuteException("execute error - wait need exact 2 params");
+		}
+
+		var needReplica = Integer.parseInt(args.getFirst());
+		var timeLimit = Integer.parseInt(args.getLast());
+
+		return RedisResultData.getSimpleResultData(RedisDataType.INTEGER, "0");
 	}
 }
