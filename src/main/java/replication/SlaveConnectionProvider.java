@@ -90,9 +90,12 @@ public class SlaveConnectionProvider {
 				}
 				log.debug("inputParams: {}", inputParams);
 
-				redisExecutor.parseAndExecute(inputParams);
-				var offset = Integer.parseInt(RedisRepository.getReplicationSetting("master_repl_offset", "0"));
-				RedisRepository.setReplicationSetting("master_repl_offset", String.valueOf(offset + inputInfo.first()));
+				var result = redisExecutor.parseAndExecute(inputParams);
+				if (result) {
+					var offset = Integer.parseInt(RedisRepository.getReplicationSetting("a", "0"));
+					log.info("Offset renewed! - offset: {}", offset + inputInfo.first());
+					RedisRepository.setReplicationSetting("a", String.valueOf(offset + inputInfo.first()));
+				}
 			}
 		}).start();
 	}

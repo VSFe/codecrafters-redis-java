@@ -9,11 +9,13 @@ import java.util.List;
 
 import common.SocketUtil;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import redis.RedisResultData;
 
 @Slf4j
 @Getter
+@Setter
 public class MasterConnectionProvider {
 	private Socket socket;
 	private BufferedReader reader;
@@ -54,6 +56,7 @@ public class MasterConnectionProvider {
 			SocketUtil.sendStringToSocket(writer, message);
 			desiredAck += message.length();
 			isAckRequested = true;
+			log.info("complete!");
 		} catch (IOException e) {
 			log.error("IOException", e);
 		}

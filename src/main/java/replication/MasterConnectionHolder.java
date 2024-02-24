@@ -17,6 +17,7 @@ public class MasterConnectionHolder {
 	private static final List<MasterConnectionProvider> MASTER_CONNECTION_PROVIDERS = new ArrayList<>();
 
 	public static void propagateCommand(List<String> inputParams) {
+		log.info("propagate start! count:{}", inputParams.size());
 		MASTER_CONNECTION_PROVIDERS.forEach(provider -> provider.sendMessage(inputParams));
 	}
 
@@ -26,7 +27,7 @@ public class MasterConnectionHolder {
 
 	public static MasterConnectionProvider findProvider(Socket socket) {
 		return MASTER_CONNECTION_PROVIDERS.stream()
-			.filter(masterConnectionProvider -> masterConnectionProvider.getSocket().getInetAddress().equals(socket.getInetAddress()))
+			.filter(masterConnectionProvider -> masterConnectionProvider.getSocket().getPort() == socket.getPort())
 			.findFirst()
 			.orElse(null);
 	}
@@ -38,15 +39,28 @@ public class MasterConnectionHolder {
 	public static int getFullySyncedReplicaCount(int desireCount, long limitTime) {
 		var start = Instant.now();
 		var result = 0;
-		limitTime /= 50;
 
+		MASTER_CONNECTION_PROVIDERS.forEach(masterConnectionProvider -> {
+			masterConnectionProvider.setConfirmed(false);
+			masterConnectionProvider.completeAck();
+		});
 		while (Duration.between(start, Instant.now()).toMillis() < limitTime) {
-			MASTER_CONNECTION_PROVIDERS.forEach(masterConnectionProvider -> masterConnectionProvider.setConfirmed(false));
-
 			MASTER_CONNECTION_PROVIDERS.stream()
 				.filter(masterConnectionProvider -> !masterConnectionProvider.isAckRequested())
-				.filter(masterConnectionProvider -> !masterConnectionProvider.isConfirmed())
-				.forEach(MasterConnectionProvider::sendAck);
+				.filter(masterConnectionProvider -> !masterConnectionProvider.isFullySynced())
+				.forEach(masterConnectionProvider -> {
+					log.info("localPort: {}", masterConnectionProvider.getSocket().getLocalPort());
+					log.info("localSocketAddress: {}", masterConnectionProvider.getSocket().getLocalSocketAddress());
+					log.info("port: {}", masterConnectionProvider.getSocket().getPort());
+					log.info("desiredAck: {}, actualAck: {}", masterConnectionProvider.getDesiredAck(), masterConnectionProvider.getPresentAck());
+					masterConnectionProvider.sendAck();
+				});
+
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+
+			}
 
 			result = (int)MASTER_CONNECTION_PROVIDERS.stream()
 				.filter(MasterConnectionProvider::isFullySynced)

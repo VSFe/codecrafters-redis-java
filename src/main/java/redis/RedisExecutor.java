@@ -23,17 +23,17 @@ public class RedisExecutor {
 	private final BufferedWriter writer;
 	private final boolean isReplication;
 
-	public void parseAndExecute(List<String> inputParams) {
+	public boolean parseAndExecute(List<String> inputParams) {
 		try {
 			var command = RedisCommand.parseCommand(inputParams.getFirst());
 			if (command == null) {
 				returnCommonErrorMessage(null);
-				return;
+				return false;
 			}
 
 			var data = executeCommand(inputParams);
 			if (data == null || isReplication) {
-				return;
+				return true;
 			}
 			var outputStr = RedisResultData.convertToOutputString(data);
 			log.debug("output: {}", outputStr);
@@ -44,11 +44,14 @@ public class RedisExecutor {
 			if (command.isWrite()) {
 				MasterConnectionHolder.propagateCommand(inputParams);
 			}
+			return true;
 		} catch (RuntimeException e) {
 			log.warn("command execute error - inputParams: {}", inputParams, e);
 			returnCommonErrorMessage(null);
+			return false;
 		} catch (IOException e) {
 			log.error("IOException", e);
+			return false;
 		}
 	}
 
@@ -177,9 +180,10 @@ public class RedisExecutor {
 	}
 
 	private List<RedisResultData> replconf(List<String> restParam) {
+		log.info("REPLCONF INPUT - param: {}", restParam);
 		if ("GETACK".equalsIgnoreCase(restParam.getFirst()) && "*".equalsIgnoreCase(restParam.get(1))) {
 			try {
-				var offset = RedisRepository.getReplicationSetting("master_repl_offset", "0");
+				var offset = RedisRepository.getReplicationSetting("a", "0");
 				var message = RedisResultData.getArrayData("REPLCONF", "ACK", offset);
 
 				SocketUtil.sendStringToSocket(writer, RedisResultData.convertToOutputString(message));
