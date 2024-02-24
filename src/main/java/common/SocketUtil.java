@@ -28,7 +28,7 @@ public class SocketUtil {
 		outputStream.flush();
 	}
 
-	public static List<String> parseSocketInputToRedisCommand(BufferedReader reader) {
+	public static Pair<Integer, List<String>> parseSocketInputToRedisCommand(BufferedReader reader) {
 		try {
 			var sizeStr = reader.readLine();
 			var inputList = new ArrayList<String>();
@@ -38,15 +38,17 @@ public class SocketUtil {
 			}
 
 			int size = Integer.parseInt(sizeStr.substring(1));
+			int byteSize = sizeStr.length() + 2;
 			for (int i = 0; i < size; i++) {
 				var paramSizeStr = reader.readLine();
 				var param = reader.readLine();
 				inputList.add(param);
+				byteSize += paramSizeStr.length() + param.length() + 4;
 			}
 
-			return inputList;
+			return new Pair<>(byteSize, inputList);
 		} catch (RuntimeException e) {
-			return List.of();
+			return new Pair(0, List.of());
 		} catch (Exception e) {
 			log.warn("I/O error", e);
 			return null;

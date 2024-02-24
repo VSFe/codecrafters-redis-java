@@ -78,6 +78,10 @@ public class RedisRepository {
 		return REDIS_REPLICATION_INFO_MAP.getOrDefault(key, null);
 	}
 
+	public static String getReplicationSetting(String key, String defaultValue) {
+		return REDIS_REPLICATION_INFO_MAP.getOrDefault(key, defaultValue);
+	}
+
 	public static List<Map.Entry<String, String>> getAllReplicationSettings() {
 		return REDIS_REPLICATION_INFO_MAP.keySet().stream()
 			.map(key -> Map.entry(key, REDIS_REPLICATION_INFO_MAP.get(key)))

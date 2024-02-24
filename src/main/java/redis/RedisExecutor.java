@@ -21,6 +21,7 @@ public class RedisExecutor {
 	private final Socket socket;
 	private final OutputStream outputStream;
 	private final BufferedWriter writer;
+	private final boolean isReplication;
 
 	public void parseAndExecute(List<String> inputParams) {
 		try {
@@ -31,6 +32,9 @@ public class RedisExecutor {
 			}
 
 			var data = executeCommand(inputParams);
+			if (data == null || isReplication) {
+				return;
+			}
 			var outputStr = RedisResultData.convertToOutputString(data);
 			log.debug("output: {}", outputStr);
 
@@ -174,9 +178,10 @@ public class RedisExecutor {
 	private List<RedisResultData> replconf(List<String> restParam) {
 		if ("GETACK".equalsIgnoreCase(restParam.getFirst()) && "*".equalsIgnoreCase(restParam.get(1))) {
 			try {
-				var message = RedisResultData.getArrayData("REPLCONF", "ACK", "0");
+				var offset = RedisRepository.getReplicationSetting("master_repl_offset", "0");
+				var message = RedisResultData.getArrayData("REPLCONF", "ACK", offset);
 				SocketUtil.sendStringToSocket(writer, RedisResultData.convertToOutputString(message));
-			} catch (IOException e) {
+			} catch (Exception e) {
 				log.error("IOException", e);
 			}
 		}

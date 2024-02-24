@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 
+import common.Pair;
 import common.SocketUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +26,11 @@ public class RedisConnectionThread extends Thread {
 			var bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 			var bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
 		) {
+			Pair<Integer, List<String>> inputInfo;
 			List<String> inputParams;
-			var redisExecutor = new RedisExecutor(socket, outputStream, bufferedWriter);
-			while ((inputParams = SocketUtil.parseSocketInputToRedisCommand(bufferedReader)) != null) {
+			var redisExecutor = new RedisExecutor(socket, outputStream, bufferedWriter, false);
+			while ((inputInfo = SocketUtil.parseSocketInputToRedisCommand(bufferedReader)) != null) {
+				inputParams = inputInfo.second();
 				if (inputParams.isEmpty()) {
 					continue;
 				}

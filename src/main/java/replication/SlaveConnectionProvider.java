@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Objects;
 
+import common.Pair;
 import common.SocketUtil;
 import lombok.extern.slf4j.Slf4j;
 import redis.RedisCommand;
@@ -78,15 +79,20 @@ public class SlaveConnectionProvider {
 
 	private void receiveMessage() throws IOException {
 		new Thread(() -> {
-			var redisExecutor = new RedisExecutor(clientSocket, outputStream, writer);
+			var redisExecutor = new RedisExecutor(clientSocket, outputStream, writer, true);
+			Pair<Integer, List<String>> inputInfo;
 			List<String> inputParams;
 
-			while ((inputParams = SocketUtil.parseSocketInputToRedisCommand(reader)) != null) {
+			while ((inputInfo = SocketUtil.parseSocketInputToRedisCommand(reader)) != null) {
+				inputParams = inputInfo.second();
 				if (inputParams.isEmpty()) {
 					continue;
 				}
 				log.debug("inputParams: {}", inputParams);
+
 				redisExecutor.parseAndExecute(inputParams);
+				var offset = Integer.parseInt(RedisRepository.getReplicationSetting("master_repl_offset", "0"));
+				RedisRepository.setReplicationSetting("master_repl_offset", String.valueOf(offset + inputInfo.first()));
 			}
 		}).start();
 	}
