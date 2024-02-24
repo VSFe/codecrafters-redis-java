@@ -183,13 +183,16 @@ public class RedisExecutor {
 				var message = RedisResultData.getArrayData("REPLCONF", "ACK", offset);
 
 				SocketUtil.sendStringToSocket(writer, RedisResultData.convertToOutputString(message));
+				return null;
 			} catch (Exception e) {
 				log.error("IOException", e);
 			}
 		} else if ("ACK".equalsIgnoreCase(restParam.getFirst())) {
 			var offset = Integer.parseInt(restParam.getLast());
 			var connectionProvider = MasterConnectionHolder.findProvider(socket);
+			connectionProvider.completeAck();
 			connectionProvider.setPresentAck(offset);
+			return null;
 		}
 		if ("listening-port".equalsIgnoreCase(restParam.getFirst())) {
 			var host = socket.getInetAddress().getHostAddress();

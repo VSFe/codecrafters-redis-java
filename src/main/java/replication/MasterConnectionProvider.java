@@ -19,6 +19,7 @@ public class MasterConnectionProvider {
 	private BufferedReader reader;
 	private BufferedWriter writer;
 	private boolean isAckRequested = false;
+	private boolean isConfirmed = true;
 	private int desiredAck = 0;
 	private int presentAck = 0;
 	public static final int REPLCONF_ACK_BYTE_SIZE = 37;
@@ -70,7 +71,15 @@ public class MasterConnectionProvider {
 		this.isAckRequested = false;
 	}
 
+	public void setConfirmed(boolean confirmed) {
+		this.isConfirmed = confirmed;
+	}
+
 	public boolean isFullySynced() {
-		return desiredAck - REPLCONF_ACK_BYTE_SIZE == presentAck;
+		if (desiredAck - REPLCONF_ACK_BYTE_SIZE <= presentAck) {
+			isConfirmed = true;
+		}
+
+		return desiredAck - REPLCONF_ACK_BYTE_SIZE <= presentAck;
 	}
 }

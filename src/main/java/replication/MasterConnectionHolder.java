@@ -38,12 +38,18 @@ public class MasterConnectionHolder {
 	public static int getFullySyncedReplicaCount(int desireCount, long limitTime) {
 		var start = Instant.now();
 		var result = 0;
+		limitTime /= 50;
 
 		while (Duration.between(start, Instant.now()).toMillis() < limitTime) {
+			MASTER_CONNECTION_PROVIDERS.forEach(masterConnectionProvider -> masterConnectionProvider.setConfirmed(false));
+
 			MASTER_CONNECTION_PROVIDERS.stream()
 				.filter(masterConnectionProvider -> !masterConnectionProvider.isAckRequested())
+				.filter(masterConnectionProvider -> !masterConnectionProvider.isConfirmed())
 				.forEach(MasterConnectionProvider::sendAck);
-			result = (int)MASTER_CONNECTION_PROVIDERS.stream().map(MasterConnectionProvider::isFullySynced)
+
+			result = (int)MASTER_CONNECTION_PROVIDERS.stream()
+				.filter(MasterConnectionProvider::isFullySynced)
 				.count();
 
 			if (result >= desireCount) {
