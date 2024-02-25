@@ -56,26 +56,9 @@ public class MasterConnectionProvider {
 			SocketUtil.sendStringToSocket(writer, message);
 			desiredAck += message.length();
 			isAckRequested = true;
-			log.info("complete!");
 		} catch (IOException e) {
 			log.error("IOException", e);
 		}
-	}
-
-	public boolean isAckReceiving() {
-		return isAckRequested;
-	}
-
-	public void setPresentAck(int num) {
-		this.presentAck = num;
-	}
-
-	public void completeAck() {
-		this.isAckRequested = false;
-	}
-
-	public void setConfirmed(boolean confirmed) {
-		this.isConfirmed = confirmed;
 	}
 
 	public boolean isFullySynced() {

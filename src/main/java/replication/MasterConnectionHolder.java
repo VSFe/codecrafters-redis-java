@@ -15,10 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 public class MasterConnectionHolder {
 	private static final Map<ReplicationConnectionInfo, Integer> WAITING_LIST = new HashMap<>();
 	private static final List<MasterConnectionProvider> MASTER_CONNECTION_PROVIDERS = new ArrayList<>();
+	private static boolean isCallOperation = false;
 
 	public static void propagateCommand(List<String> inputParams) {
-		log.info("propagate start! count:{}", inputParams.size());
-		MASTER_CONNECTION_PROVIDERS.forEach(provider -> provider.sendMessage(inputParams));
+		log.info("propagate start! inputParams: {}", inputParams);
+		isCallOperation = true;
+
+		MASTER_CONNECTION_PROVIDERS.forEach(provider -> {
+			provider.sendMessage(inputParams);
+		});
 	}
 
 	public static void createNewWaitingConnection(String ipAddress, int connectionPort, int slavePort) {
@@ -40,24 +45,18 @@ public class MasterConnectionHolder {
 		var start = Instant.now();
 		var result = 0;
 
-		MASTER_CONNECTION_PROVIDERS.forEach(masterConnectionProvider -> {
-			masterConnectionProvider.setConfirmed(false);
-			masterConnectionProvider.completeAck();
-		});
-		while (Duration.between(start, Instant.now()).toMillis() < limitTime) {
-			MASTER_CONNECTION_PROVIDERS.stream()
-				.filter(masterConnectionProvider -> !masterConnectionProvider.isAckRequested())
-				.filter(masterConnectionProvider -> !masterConnectionProvider.isFullySynced())
-				.forEach(masterConnectionProvider -> {
-					log.info("localPort: {}", masterConnectionProvider.getSocket().getLocalPort());
-					log.info("localSocketAddress: {}", masterConnectionProvider.getSocket().getLocalSocketAddress());
-					log.info("port: {}", masterConnectionProvider.getSocket().getPort());
-					log.info("desiredAck: {}, actualAck: {}", masterConnectionProvider.getDesiredAck(), masterConnectionProvider.getPresentAck());
-					masterConnectionProvider.sendAck();
-				});
+		if (!isCallOperation) {
+			return MASTER_CONNECTION_PROVIDERS.size();
+		}
 
+		MASTER_CONNECTION_PROVIDERS.forEach(masterConnectionProvider -> {
+			log.info("desiredAck: {}, actualAck: {}", masterConnectionProvider.getDesiredAck(), masterConnectionProvider.getPresentAck());
+			masterConnectionProvider.sendAck();
+		});
+
+		while (Duration.between(start, Instant.now()).toMillis() < limitTime) {
 			try {
-				Thread.sleep(50);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 
 			}

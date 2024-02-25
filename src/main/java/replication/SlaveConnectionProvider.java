@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import redis.RedisCommand;
 import redis.RedisExecutor;
 import redis.RedisRepository;
-import redis.RedisResultData;
 
 @Slf4j
 public class SlaveConnectionProvider {
@@ -77,7 +76,7 @@ public class SlaveConnectionProvider {
 		}
 	}
 
-	private void receiveMessage() throws IOException {
+	private void receiveMessage() {
 		new Thread(() -> {
 			var redisExecutor = new RedisExecutor(clientSocket, outputStream, writer, true);
 			Pair<Integer, List<String>> inputInfo;

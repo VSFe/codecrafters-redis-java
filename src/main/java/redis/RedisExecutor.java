@@ -191,22 +191,22 @@ public class RedisExecutor {
 			} catch (Exception e) {
 				log.error("IOException", e);
 			}
-		} else if ("ACK".equalsIgnoreCase(restParam.getFirst())) {
+		} else if ("ACK".equalsIgnoreCase(restParam.getFirst()) && !isReplication) {
 			var offset = Integer.parseInt(restParam.getLast());
 			var connectionProvider = MasterConnectionHolder.findProvider(socket);
-			connectionProvider.completeAck();
 			connectionProvider.setPresentAck(offset);
 			return null;
 		}
-		if ("listening-port".equalsIgnoreCase(restParam.getFirst())) {
+		if ("listening-port".equalsIgnoreCase(restParam.getFirst()) || "capa".equalsIgnoreCase(restParam.getFirst())) {
 			var host = socket.getInetAddress().getHostAddress();
 			var connectionPort = socket.getPort();
 			var port = Integer.parseInt(restParam.get(1));
 
 			log.info("ipAddress: {}, innerPort: {}, port:{}", host, connectionPort, port);
 			// TODO: Will be used... maybe?
+			return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "OK");
 		}
-		return RedisResultData.getSimpleResultData(RedisDataType.SIMPLE_STRINGS, "OK");
+		return null;
 	}
 
 	private List<RedisResultData> psync(List<String> restParam) {
